@@ -1,0 +1,13 @@
+.cache/
+.parcel-cache/
+node_modules/
+dist/
+
+**/.DS_Store
+
+auth.json
+
+src/*data/
+src/index.html
+
+template/copy.json
