@@ -1,11 +1,11 @@
 {
     "archie": {
-        "gdoc": "1b1G4vXtHYZqwB8Ofky7szg6_kItoxZKIEob-DBcrDH0",
+        "gdoc": "12TCxueegms0qIzbqMsy1SdFzPdRbFey0venbk708tn8",
         "template": "./template/index.html",
         "output": "./template/copy.json",
         "apiConfig": "./auth.json"
     },
     "hostname": "magnify.michigandaily.us",
-    "base_url": "sourdough",
+    "base_url": "online-classes",
     "ga_id": "UA-168080597-1"
 }

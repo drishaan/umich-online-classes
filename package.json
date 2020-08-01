@@ -27,5 +27,9 @@
       }
     ],
     "watcherGlob": "src/data/*"
+  },
+  "dependencies": {
+    "d3": "^5.16.0",
+    "d3-array": "^2.5.0"
   }
 }

@@ -3,6 +3,9 @@
 build-prod: export NODE_ENV = production
 build-prod: build
 
+preprocess:
+	cp src/raw_data/undergrad_sections.csv src/data
+
 gdoc:
 	yarn run fetch-doc
 
