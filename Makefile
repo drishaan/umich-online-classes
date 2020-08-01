@@ -5,6 +5,7 @@ build-prod: build
 
 preprocess:
 	cp src/raw_data/undergrad_sections.csv src/data
+	node scripts/preprocess.js  # once you implement this, delete above line
 
 gdoc:
 	yarn run fetch-doc
