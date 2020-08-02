@@ -69,6 +69,9 @@ class TypeBreakdown {
   }
 
   chart(datum, _, el) {
+    this.width = d3.min([600, window.innerWidth * 0.8]);
+    this.xScale.range([0, this.width - this.margin.left - this.margin.right]);
+
     const data = this.preprocess(datum);
     const svg_enter = el
       .selectAll("svg")
@@ -124,7 +127,6 @@ class ClassBreakdown {
   x = d3
     .scaleLinear()
     .domain([0, 1])
-    .range([0, this.width - this.margin.left - this.margin.right]);
 
   constructor() {
     // in here, "this" is the Map instance
@@ -149,6 +151,9 @@ class ClassBreakdown {
   }
 
   chart(datum, _, el) {
+    this.width = d3.min([600, window.innerWidth * 0.8])
+    this.x.range([0, this.width - this.margin.left - this.margin.right]);
+    console.log(this.width)
     const data = this.preprocess(datum);
     const svg_enter = el
       .selectAll("svg")
@@ -214,7 +219,6 @@ class ClassBreakdown {
       .attr("dy", 12)
       .attr("alignment-baseline", "middle")
       .attr("font-size", "smaller")
-      .each((d) => console.log(d));
   }
   draw(selection) {
     const chart = this.chart;
@@ -313,6 +317,10 @@ class ClassPool {
   }
 
   chart(datum, _, el) {
+    this.width = window.innerWidth * 0.8
+    this.centerScale.range([0, this.width]);
+    this.radiusScale.range([0, this.width * 0.05])
+
     function hover() {
       const text = d3
         .select(this)
