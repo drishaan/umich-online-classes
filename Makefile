@@ -4,7 +4,6 @@ build-prod: export NODE_ENV = production
 build-prod: build
 
 preprocess:
-	node scripts/preprocess.js
 	python scripts/preprocess.py
 gdoc:
 	yarn run fetch-doc
