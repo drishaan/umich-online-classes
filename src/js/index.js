@@ -20,7 +20,7 @@ class TypeBreakdown {
     .scaleLinear()
     .domain([0, 1])
     .range([0, this.width - this.margin.left - this.margin.right]);
-  colorScale = d3.scaleOrdinal(d3.schemeCategory10)
+  colorScale = d3.scaleOrdinal(d3.schemeDark2);
 
   constructor() {
     // in here, "this" is the Map instance
@@ -31,14 +31,13 @@ class TypeBreakdown {
   }
 
   preprocess(datum) {
-    console.log(datum);
     // end up with {type: count..}
     let data = rollup(
       datum,
       (v) => v.length,
       (d) => d.mode
     );
-    const total = d3.sum(data.values());
+    const total = d3.sum(Array.from(data.values()));
     let offsets = [];
     data = Array.from(data.entries());
     data.reduce((acc, curr) => {
@@ -66,7 +65,7 @@ class TypeBreakdown {
       .append("g")
       .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
-    this.colorScale.domain([0, 1, 2])
+    this.colorScale.domain([0, 1, 2]);
     const rects = g
       .selectAll("rect")
       .data(data)
@@ -75,7 +74,18 @@ class TypeBreakdown {
       .attr("width", (d) => this.xScale(d.value))
       .attr("height", 30)
       .attr("x", (d) => this.xScale(d.offset))
-      .attr("fill", (d, i) => this.colorScale(i));
+      .attr("fill", (_, i) => this.colorScale(i));
+    const format = d3.format(".0%");
+    const labels = g
+      .selectAll("text")
+      .data(data)
+      .enter()
+      .append("text")
+      .attr("alignment-baseline", "middle")
+      .attr("x", (d) => this.xScale(d.offset) + 5)
+      .attr("y", 30 / 2.0 + 2)
+      .attr("font-size", "smaller")
+      .text((d) => `${d.key} ${format(d.value)}`);
   }
 
   draw(selection) {
@@ -83,7 +93,6 @@ class TypeBreakdown {
     selection.each(function (d, i) {
       // what is "this"?
       // "this" is the element in the selection
-      console.log(d);
       chart(d, i, d3.select(this));
     });
   }
