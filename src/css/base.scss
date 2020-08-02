@@ -112,3 +112,9 @@ article {
   font-size: 0.8rem;
   font-style: italic;
 }
+
+.vis.subject_breakdown {
+    .tick line, path.domain {
+        display: none;
+    }
+}

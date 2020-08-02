@@ -117,16 +117,14 @@ class TypeBreakdown {
 class ClassBreakdown {
   // source = "./data/online_classes_processed.csv";
   width = 600;
-  height = 100;
+  height = 7 * 30;
 
   margin = { top: 0, right: 0, bottom: 0, left: 100 };
-  y = d3.scaleBand()
-      .range([this.height, 0])
-      .padding([0.2])
-  x = d3.scaleLinear()
-      .domain([0,1])
-      .range([0,this.width]);
-  
+  y = d3.scaleBand().range([0, this.height]).padding([0.2]);
+  x = d3
+    .scaleLinear()
+    .domain([0, 1])
+    .range([0, this.width - this.margin.left - this.margin.right]);
 
   constructor() {
     // in here, "this" is the Map instance
@@ -138,26 +136,19 @@ class ClassBreakdown {
 
   preprocess(datum) {
     // end up with {type: count..}
-    let data = group(datum, d => d.subject);
-    data = Array.from(data.entries()).map(d => ({
+    let data = group(datum, (d) => d.subject);
+    data = Array.from(data.entries()).map((d) => ({
       subject: d[0],
-      percentages: rollup(d[1], v => (v.length*1.0/d[1].length), d => d.mode),
-      }))
-    // let offsets = [];
-    // data = Array.from(data.entries());
-    // data.reduce((acc, curr) => {
-    //   offsets.push(acc);
-    //   return acc + curr[1];
-    // }, 0);
-    // data = data.map((v, i) => ({
-    //   key: v[0],
-    //   value: v[1] / (total * 1.0),
-    //   offset: offsets[i] / (total * 1.0),
-    // }));
+      percentages: rollup(
+        d[1],
+        (v) => (v.length * 1.0) / d[1].length,
+        (d) => d.mode
+      ),
+    }));
     return data;
   }
 
-  chart(datum, i, el) {
+  chart(datum, _, el) {
     const data = this.preprocess(datum);
     const svg_enter = el
       .selectAll("svg")
@@ -170,40 +161,60 @@ class ClassBreakdown {
       .append("g")
       .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
-    this.y
-      .domain(data.map(d => d.subject))
-    
-    g.append("g")
-      .call(d3.axisLeft(this.y).tickSizeOuter(0));
-    
+    this.y.domain(data.map((d) => d.subject));
+
+    g.append("g").call(d3.axisLeft(this.y).tickSizeOuter(0));
+
     let subgroups = Array.from(data[0].percentages.keys());
 
-    let color = d3.scaleOrdinal()
-      .domain(subgroups)
-      .range(['#C7EFCF','#FE5F55','#EEF5DB'])
-    
-    let stacker = d3.stack()
-      .keys(subgroups)
-      (data.map(d => d.percentages))
-    
+    let color = d3.scaleOrdinal(d3.schemeDark2).domain(subgroups);
+
+    let stacker = d3.stack().keys(subgroups);
+
     let bars = g
       .selectAll("g.bar")
       .data(data)
       .enter()
       .append("g")
-      .attr("transform",d =>`translate(0,${this.y(d.subject)})`)
-      .classed("bar",true)
+      .attr("transform", (d) => `translate(0,${this.y(d.subject)})`)
+      .classed("bar", true);
+    bars
       .selectAll("rect")
-      .each(d => console.log(d))
-      .data(function(d){console.log(stacker([d.percentages])); return Array.from(d.percentages.values())})
+      .data(function (d) {
+        // convert from Map to object literal:
+        // https://gist.github.com/lukehorvat/133e2293ba6ae96a35ba#gistcomment-2624332
+        const obj = Array.from(d.percentages.entries()).reduce(
+          (main, [key, value]) => ({ ...main, [key]: value }),
+          {}
+        );
+        return stacker([obj]);
+      })
       .enter()
       .append("rect")
-      .attr("width",50)
-      .attr("height",50)
-      .attr("fill","black")
-      .each(d => console.log(d))
-
-    
+      .attr("width", (d) => this.x(d[0][1]) - this.x(d[0][0]))
+      .attr("x", (d) => this.x(d[0][0]))
+      .attr("height", 20)
+      .attr("fill", (d) => color(d.key));
+    bars
+      .filter((_, i) => i === 0)
+      .selectAll("text")
+      .data(function (d) {
+        // convert from Map to object literal:
+        // https://gist.github.com/lukehorvat/133e2293ba6ae96a35ba#gistcomment-2624332
+        const obj = Array.from(d.percentages.entries()).reduce(
+          (main, [key, value]) => ({ ...main, [key]: value }),
+          {}
+        );
+        return stacker([obj]);
+      })
+      .enter()
+      .append("text")
+      .text((d) => d.key)
+      .attr("x", d => this.x(d[0][0]) + 5)
+      .attr("dy", 12)
+      .attr("alignment-baseline", "middle")
+      .attr("font-size", "smaller")
+      .each((d) => console.log(d));
   }
   draw(selection) {
     const chart = this.chart;
