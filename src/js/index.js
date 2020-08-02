@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import { rollup } from "d3-array";
 
-function checkIframe () {
+function checkIframe() {
   try {
     return window.self !== window.top;
   } catch (e) {
@@ -205,18 +205,20 @@ class ClassPool {
   margin = { top: 0, right: 0, bottom: 0, left: 0 };
 
   radiusScale = d3.scaleSqrt().range([0, 40]);
-  centerScale = d3.scalePoint().range([0, this.width]).padding(0.2);
+  centerScale = d3.scalePoint().range([0, this.width]).padding(0.3);
   colorScale = d3.scaleOrdinal(d3.schemeDark2);
 
   simulation = d3
     .forceSimulation()
     .force(
       "x",
-      d3.forceX().x((d) => this.centerScale(d.mode))
+      d3
+        .forceX()
+        .x((d) => this.centerScale(d.mode))
+        .strength(0.09)
     )
     .force("y", d3.forceY().y(this.height / 2))
     .force("cluster", this.forceCluster())
-    // .force("collide", this.forceCollide());
     .force(
       "collision",
       d3.forceCollide().radius((d) => d.radius + 1)
@@ -253,7 +255,7 @@ class ClassPool {
   }
 
   forceCluster() {
-    const strength = 0.2;
+    const strength = 1;
     let nodes;
     function centroid(nodes) {
       let x = 0;
@@ -285,56 +287,38 @@ class ClassPool {
     return force;
   }
 
-  forceCollide() {
-    const alpha = 0.4; // fixed for greater rigidity!
-    const padding1 = 2; // separation between same-color nodes
-    const padding2 = 6; // separation between different-color nodes
-    let nodes;
-    let maxRadius;
-
-    function force() {
-      const quadtree = d3.quadtree(
-        nodes,
-        (d) => d.x,
-        (d) => d.y
-      );
-      for (const d of nodes) {
-        const r = d.radius + maxRadius;
-        const nx1 = d.x - r,
-          ny1 = d.y - r;
-        const nx2 = d.x + r,
-          ny2 = d.y + r;
-        quadtree.visit((q, x1, y1, x2, y2) => {
-          if (!q.length)
-            do {
-              if (q.data !== d) {
-                const r =
-                  d.radius +
-                  q.data.r +
-                  (d.subject === q.data.subject ? padding1 : padding2);
-                let x = d.x - q.data.x,
-                  y = d.y - q.data.y,
-                  l = Math.hypot(x, y);
-                if (l < r) {
-                  l = ((l - r) / l) * alpha;
-                  (d.x -= x *= l), (d.y -= y *= l);
-                  (q.data.x += x), (q.data.y += y);
-                }
-              }
-            } while ((q = q.next));
-          return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
-        });
-      }
+  chart(datum, _, el) {
+    function hover() {
+      const text = d3
+        .select(this)
+        .selectAll("text.label")
+        .data((d) => [d])
+        .enter()
+        .append("text")
+        .classed("label", true)
+        .attr("pointer-events", "none")
+        .attr("font-size", "smaller")
+        .attr("text-anchor", "middle")
+        .attr("font-family", "Open Sans")
+        .attr("font-weight", "bold");
+      text
+        .append("tspan")
+        .text((d) => `${d.dept} ${d.number}`)
+        .attr("x", 0)
+        .attr("stroke", "white")
+        .attr("stroke-width", 3)
+        .attr("stroke-linecap", "round")
+        .attr("stroke-linejoin", "round");
+      text
+        .append("tspan")
+        .text((d) => `${d.dept} ${d.number}`)
+        .attr("x", 0);
+      d3.select(this).raise();
     }
-
-    force.initialize = (_) =>
-      (maxRadius =
-        d3.max((nodes = _), (d) => d.radius) + Math.max(padding1, padding2));
-
-    return force;
-  }
-
-  chart(datum, i, el) {
+    function unhover() {
+      if (d3.select(this).datum().radius < 20)
+        d3.select(this).selectAll("text.label").remove();
+    }
     const nodes = this.getNodes(datum);
     const svg_enter = el
       .selectAll("svg")
@@ -348,19 +332,57 @@ class ClassPool {
       .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
     this.colorScale.domain(nodes.map((d) => d.subject));
     const bubbles = g
-      .selectAll("circle")
+      .selectAll("g.circle")
       .data(nodes, (d) => d.id)
       .enter()
+      .append("g")
+      .classed("circle", true)
+      .on("mouseover", hover)
+      .on("mouseout", unhover);
+    bubbles
       .append("circle")
       .attr("r", (d) => d.radius)
       .attr("fill", (d) => this.colorScale(d.subject));
-
+    const text = bubbles
+      .selectAll("text.label")
+      .data((d) => (d.radius > 20 ? [d] : []))
+      .enter()
+      .append("text")
+      .classed("label", true)
+      .attr("font-size", "smaller")
+      .attr("text-anchor", "middle")
+      .attr("font-weight", "bold")
+      .attr("font-family", "Open Sans");
+    text
+      .append("tspan")
+      .text((d) => `${d.dept} ${d.number}`)
+      .attr("x", 0)
+      .attr("stroke", "white")
+      .attr("stroke-width", 3)
+      .attr("stroke-linecap", "round")
+      .attr("stroke-linejoin", "round");
+    text
+      .append("tspan")
+      .text((d) => `${d.dept} ${d.number}`)
+      .attr("x", 0);
+    bubbles.filter((d) => d.radius > 20).raise();
+    this.centerScale.domain(nodes.map((d) => d.mode));
+    const categories = g
+      .selectAll("text.category")
+      .data(["Online", "In Person", "Hybrid"])
+      .enter()
+      .append("text")
+      .classed("category", true)
+      .attr("x", (d) => this.centerScale(d))
+      .attr("y", this.height - 20)
+      .attr("alignment-baseline", "baseline")
+      .attr("text-anchor", "middle")
+      .text((d) => d);
     // https://observablehq.com/@d3/clustered-bubbles
     function tick() {
-      bubbles.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+      bubbles.attr("transform", (d) => `translate(${d.x}, ${d.y})`);
+      // bubbles.attr("x", (d) => d.x).attr("y", (d) => d.y);
     }
-
-    this.centerScale.domain(nodes.map((d) => d.mode));
 
     this.simulation.nodes(nodes).on("tick", tick).restart();
   }
