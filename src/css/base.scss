@@ -32,15 +32,27 @@ header {
   }
 }
 
+body.iframe {
+  article > * {
+    display: none;
+  }
+  header {
+    display: none;
+  }
+  figure.vis {
+    display: block;
+  }
+}
+
 footer {
-    height: 40px;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    span.social__blurb {
-        font-style: italic;
-        opacity: 0.6;
-    }
+  height: 40px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  span.social__blurb {
+    font-style: italic;
+    opacity: 0.6;
+  }
 }
 
 p.data {
@@ -90,7 +102,7 @@ article {
 }
 
 .figure__byline {
-  float: right;
+  text-align: right;
   font-size: 10px;
   font-weight: bold;
 }
