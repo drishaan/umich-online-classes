@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { rollup } from "d3-array";
+import { rollup, group } from "d3-array";
 
 function checkIframe() {
   try {
@@ -117,14 +117,16 @@ class TypeBreakdown {
 class ClassBreakdown {
   // source = "./data/online_classes_processed.csv";
   width = 600;
-  height = 50;
+  height = 100;
 
-  margin = { top: 0, right: 0, bottom: 0, left: 0 };
-  xScale = d3
-    .scaleLinear()
-    .domain([0, 1])
-    .range([0, this.width - this.margin.left - this.margin.right]);
-  colorScale = d3.scaleOrdinal(d3.schemeDark2);
+  margin = { top: 0, right: 0, bottom: 0, left: 100 };
+  y = d3.scaleBand()
+      .range([this.height, 0])
+      .padding([0.2])
+  x = d3.scaleLinear()
+      .domain([0,1])
+      .range([0,this.width]);
+  
 
   constructor() {
     // in here, "this" is the Map instance
@@ -136,23 +138,22 @@ class ClassBreakdown {
 
   preprocess(datum) {
     // end up with {type: count..}
-    let data = rollup(
-      datum,
-      (v) => v.length,
-      (d) => d.subject
-    );
-    const total = d3.sum(Array.from(data.values()));
-    let offsets = [];
-    data = Array.from(data.entries());
-    data.reduce((acc, curr) => {
-      offsets.push(acc);
-      return acc + curr[1];
-    }, 0);
-    data = data.map((v, i) => ({
-      key: v[0],
-      value: v[1] / (total * 1.0),
-      offset: offsets[i] / (total * 1.0),
-    }));
+    let data = group(datum, d => d.subject);
+    data = Array.from(data.entries()).map(d => ({
+      subject: d[0],
+      percentages: rollup(d[1], v => (v.length*1.0/d[1].length), d => d.mode),
+      }))
+    // let offsets = [];
+    // data = Array.from(data.entries());
+    // data.reduce((acc, curr) => {
+    //   offsets.push(acc);
+    //   return acc + curr[1];
+    // }, 0);
+    // data = data.map((v, i) => ({
+    //   key: v[0],
+    //   value: v[1] / (total * 1.0),
+    //   offset: offsets[i] / (total * 1.0),
+    // }));
     return data;
   }
 
@@ -169,27 +170,40 @@ class ClassBreakdown {
       .append("g")
       .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
 
-    this.colorScale.domain([0, 1, 2]);
-    const rects = g
-      .selectAll("rect")
+    this.y
+      .domain(data.map(d => d.subject))
+    
+    g.append("g")
+      .call(d3.axisLeft(this.y).tickSizeOuter(0));
+    
+    let subgroups = Array.from(data[0].percentages.keys());
+
+    let color = d3.scaleOrdinal()
+      .domain(subgroups)
+      .range(['#C7EFCF','#FE5F55','#EEF5DB'])
+    
+    let stacker = d3.stack()
+      .keys(subgroups)
+      (data.map(d => d.percentages))
+    
+    let bars = g
+      .selectAll("g.bar")
       .data(data)
+      .enter()
+      .append("g")
+      .attr("transform",d =>`translate(0,${this.y(d.subject)})`)
+      .classed("bar",true)
+      .selectAll("rect")
+      .each(d => console.log(d))
+      .data(function(d){console.log(stacker([d.percentages])); return Array.from(d.percentages.values())})
       .enter()
       .append("rect")
-      .attr("width", (d) => this.xScale(d.value))
-      .attr("height", 30)
-      .attr("x", (d) => this.xScale(d.offset))
-      .attr("fill", (_, i) => this.colorScale(i));
-    const format = d3.format(".0%");
-    const labels = g
-      .selectAll("text")
-      .data(data)
-      .enter()
-      .append("text")
-      .attr("alignment-baseline", "middle")
-      .attr("x", (d) => this.xScale(d.offset) + 5)
-      .attr("y", 30 / 2.0 + 2)
-      .attr("font-size", "smaller")
-      .text((d) => `${d.key} ${format(d.value)}`);
+      .attr("width",50)
+      .attr("height",50)
+      .attr("fill","black")
+      .each(d => console.log(d))
+
+    
   }
   draw(selection) {
     const chart = this.chart;
