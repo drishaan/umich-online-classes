@@ -4,9 +4,13 @@ import { rollup } from "d3-array";
 window.onload = function () {
   d3.csv("./data/undergrad_sections.csv").then((data) => {
     const type_breakdown = new TypeBreakdown();
+    const class_pool = new ClassPool();
     d3.select(".vis.type_breakdown .figure__graphic")
       .datum(data)
       .call(type_breakdown.draw);
+    d3.select(".vis.course_pool .figure__graphic")
+      .datum(data)
+      .call(class_pool.draw);
   });
 };
 
@@ -52,7 +56,7 @@ class TypeBreakdown {
     return data;
   }
 
-  chart(datum, i, el) {
+  chart(datum, _, el) {
     const data = this.preprocess(datum);
     const svg_enter = el
       .selectAll("svg")
@@ -93,6 +97,91 @@ class TypeBreakdown {
     selection.each(function (d, i) {
       // what is "this"?
       // "this" is the element in the selection
+      chart(d, i, d3.select(this));
+    });
+  }
+}
+
+class ClassPool {
+  width = 800;
+  height = 400;
+  margin = { top: 0, right: 0, bottom: 0, left: 0 };
+
+  radiusScale = d3.scaleSqrt().range([0, 40]);
+  centerScale = d3.scalePoint().range([0, this.width]).padding(0.5);
+
+  simulation = d3
+    .forceSimulation()
+    .force(
+      "collision",
+      d3.forceCollide().radius((d) => d.radius + 1)
+    )
+    .force("x", d3.forceX().x(d => this.centerScale(d.mode)))
+    .force("y", d3.forceY().y(this.height / 2));
+
+  // force simulation starts up automatically, which we don't want as there aren't any nodes yet
+
+  constructor() {
+    this.chart = this.chart.bind(this);
+    this.draw = this.draw.bind(this);
+    this.getNodes = this.getNodes.bind(this);
+    this.simulation.stop();
+  }
+
+  getNodes(datum) {
+    let data = Array.from(
+      rollup(
+        datum,
+        (v) => ({
+          dept: v[0].dept,
+          number: v[0].number,
+          name: v[0].name,
+          term: v[0].term,
+          mode: v[0].mode,
+          sections: v,
+        }),
+        (d) => `${d.dept} ${d.number} ${d.mode}`
+      ).values()
+    );
+    this.radiusScale.domain(d3.extent(data.map((d) => d.sections.length)));
+    return data.map((d) => ({
+      ...d,
+      radius: this.radiusScale(d.sections.length),
+    }));
+  }
+
+  chart(datum, i, el) {
+    const nodes = this.getNodes(datum);
+    const svg_enter = el
+      .selectAll("svg")
+      .data([nodes])
+      .enter()
+      .append("svg")
+      .attr("width", this.width)
+      .attr("height", this.height);
+    const g = svg_enter
+      .append("g")
+      .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+    const bubbles = g
+      .selectAll("circle")
+      .data(nodes, (d) => d.id)
+      .enter()
+      .append("circle")
+      .attr("r", (d) => d.radius)
+      .attr("fill", "black");
+
+    function tick() {
+      bubbles.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+    }
+
+    this.centerScale.domain(nodes.map(d => d.mode))
+
+    this.simulation.nodes(nodes).on("tick", tick).restart();
+  }
+
+  draw(selection) {
+    const chart = this.chart;
+    selection.each(function (d, i) {
       chart(d, i, d3.select(this));
     });
   }
