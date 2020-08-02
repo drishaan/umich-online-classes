@@ -15,7 +15,6 @@ window.onload = function () {
     d3.select(".vis.subject_breakdown .figure__graphic")
       .datum(data)
       .call(class_breakdown.draw);
-    console.log(data)
   });
 };
 
@@ -145,7 +144,6 @@ class ClassBreakdown {
       value: v[1] / (total * 1.0),
       offset: offsets[i] / (total * 1.0),
     }));
-    console.log(data)
     return data;
   }
 
@@ -199,6 +197,7 @@ class ClassPool {
 
   radiusScale = d3.scaleSqrt().range([0, 40]);
   centerScale = d3.scalePoint().range([0, this.width]).padding(0.5);
+  colorScale = d3.scaleOrdinal(d3.schemeDark2);
 
   simulation = d3
     .forceSimulation()
@@ -228,6 +227,7 @@ class ClassPool {
           name: v[0].name,
           term: v[0].term,
           mode: v[0].mode,
+          subject: v[0].subject,
           sections: v,
         }),
         (d) => `${d.dept} ${d.number} ${d.mode}`
@@ -252,13 +252,14 @@ class ClassPool {
     const g = svg_enter
       .append("g")
       .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+    this.colorScale.domain(nodes.map(d => d.subject))
     const bubbles = g
       .selectAll("circle")
       .data(nodes, (d) => d.id)
       .enter()
       .append("circle")
       .attr("r", (d) => d.radius)
-      .attr("fill", "black");
+      .attr("fill", d => this.colorScale(d.subject))
 
     function tick() {
       bubbles.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
