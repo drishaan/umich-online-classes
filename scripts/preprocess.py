@@ -1,6 +1,6 @@
 import pandas as pd
 
-df = pd.read_csv("./src/data/undergrad_sections.csv")
+df = pd.read_csv("./src/raw_data/undergrad_sections.csv")
 unique_depts = df["dept"].unique()
 print(len(unique_depts))
 category_dict = {
@@ -208,4 +208,5 @@ for dept in df["dept"]:
         subject_list.append("Interdisciplinary")
 df.insert(2, "subject", subject_list, True)
 df["mode"] = df["mode"].apply(name_map.get)
+print(df["mode"])
 df.to_csv("./src/data/undergrad_sections_processed.csv")
