@@ -6,6 +6,6 @@
         "apiConfig": "./auth.json"
     },
     "hostname": "magnify.michigandaily.us",
-    "base_url": "online-classes",
+    "base_url": "online_classes",
     "ga_id": "UA-168080597-1"
 }
