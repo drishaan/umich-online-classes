@@ -2,14 +2,17 @@ import * as d3 from "d3";
 import { rollup } from "d3-array";
 
 window.onload = function () {
-  d3.csv("./data/undergrad_sections.csv").then((data) => {
+  d3.csv("./data/undergrad_sections_processed.csv").then((data) => {
     const type_breakdown = new TypeBreakdown();
     d3.select(".vis.type_breakdown .figure__graphic")
       .datum(data)
       .call(type_breakdown.draw);
-
-    const class_breakdown = new ClassBreakdown();
     
+    const class_breakdown = new ClassBreakdown();
+    d3.select(".vis.subject_breakdown .figure__graphic")
+      .datum(data)
+      .call(class_breakdown.draw);
+    console.log(data)
   });
 };
 
@@ -126,7 +129,7 @@ class ClassBreakdown {
     let data = rollup(
       datum,
       (v) => v.length,
-      (d) => d.mode
+      (d) => d.subject
     );
     const total = d3.sum(Array.from(data.values()));
     let offsets = [];
@@ -140,6 +143,7 @@ class ClassBreakdown {
       value: v[1] / (total * 1.0),
       offset: offsets[i] / (total * 1.0),
     }));
+    console.log(data)
     return data;
   }
 
