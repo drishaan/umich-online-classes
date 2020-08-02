@@ -1,7 +1,16 @@
 import * as d3 from "d3";
 import { rollup, group } from "d3-array";
 
+function checkIframe () {
+  try {
+    return window.self !== window.top;
+  } catch (e) {
+    return true;
+  }
+}
+
 window.onload = function () {
+  if (checkIframe()) document.body.classList.add("iframe");
   d3.csv("./data/undergrad_sections_processed.csv").then((data) => {
     const type_breakdown = new TypeBreakdown();
     const class_pool = new ClassPool();
@@ -210,19 +219,22 @@ class ClassPool {
   margin = { top: 0, right: 0, bottom: 0, left: 0 };
 
   radiusScale = d3.scaleSqrt().range([0, 40]);
-  centerScale = d3.scalePoint().range([0, this.width]).padding(0.5);
+  centerScale = d3.scalePoint().range([0, this.width]).padding(0.2);
   colorScale = d3.scaleOrdinal(d3.schemeDark2);
 
   simulation = d3
     .forceSimulation()
     .force(
+      "x",
+      d3.forceX().x((d) => this.centerScale(d.mode))
+    )
+    .force("y", d3.forceY().y(this.height / 2))
+    .force("cluster", this.forceCluster())
+    // .force("collide", this.forceCollide());
+    .force(
       "collision",
       d3.forceCollide().radius((d) => d.radius + 1)
-    )
-    .force("x", d3.forceX().x(d => this.centerScale(d.mode)))
-    .force("y", d3.forceY().y(this.height / 2));
-
-  // force simulation starts up automatically, which we don't want as there aren't any nodes yet
+    );
 
   constructor() {
     this.chart = this.chart.bind(this);
@@ -254,6 +266,88 @@ class ClassPool {
     }));
   }
 
+  forceCluster() {
+    const strength = 0.2;
+    let nodes;
+    function centroid(nodes) {
+      let x = 0;
+      let y = 0;
+      let z = 0;
+      for (const d of nodes) {
+        let k = d.radius ** 2;
+        x += d.x * k;
+        y += d.y * k;
+        z += k;
+      }
+      return { x: x / z, y: y / z };
+    }
+
+    function cluster(d) {
+      return `${d.subject}-${d.mode}`;
+    }
+
+    function force(alpha) {
+      const centroids = rollup(nodes, centroid, cluster);
+      const l = alpha * strength;
+      for (const d of nodes) {
+        const { x: cx, y: cy } = centroids.get(cluster(d));
+        d.vx -= (d.x - cx) * l;
+        d.vy -= (d.y - cy) * l;
+      }
+    }
+    force.initialize = (_) => (nodes = _);
+    return force;
+  }
+
+  forceCollide() {
+    const alpha = 0.4; // fixed for greater rigidity!
+    const padding1 = 2; // separation between same-color nodes
+    const padding2 = 6; // separation between different-color nodes
+    let nodes;
+    let maxRadius;
+
+    function force() {
+      const quadtree = d3.quadtree(
+        nodes,
+        (d) => d.x,
+        (d) => d.y
+      );
+      for (const d of nodes) {
+        const r = d.radius + maxRadius;
+        const nx1 = d.x - r,
+          ny1 = d.y - r;
+        const nx2 = d.x + r,
+          ny2 = d.y + r;
+        quadtree.visit((q, x1, y1, x2, y2) => {
+          if (!q.length)
+            do {
+              if (q.data !== d) {
+                const r =
+                  d.radius +
+                  q.data.r +
+                  (d.subject === q.data.subject ? padding1 : padding2);
+                let x = d.x - q.data.x,
+                  y = d.y - q.data.y,
+                  l = Math.hypot(x, y);
+                if (l < r) {
+                  l = ((l - r) / l) * alpha;
+                  (d.x -= x *= l), (d.y -= y *= l);
+                  (q.data.x += x), (q.data.y += y);
+                }
+              }
+            } while ((q = q.next));
+          return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+        });
+      }
+    }
+
+    force.initialize = (_) =>
+      (maxRadius =
+        d3.max((nodes = _), (d) => d.radius) + Math.max(padding1, padding2));
+
+    return force;
+  }
+
   chart(datum, i, el) {
     const nodes = this.getNodes(datum);
     const svg_enter = el
@@ -266,20 +360,21 @@ class ClassPool {
     const g = svg_enter
       .append("g")
       .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
-    this.colorScale.domain(nodes.map(d => d.subject))
+    this.colorScale.domain(nodes.map((d) => d.subject));
     const bubbles = g
       .selectAll("circle")
       .data(nodes, (d) => d.id)
       .enter()
       .append("circle")
       .attr("r", (d) => d.radius)
-      .attr("fill", d => this.colorScale(d.subject))
+      .attr("fill", (d) => this.colorScale(d.subject));
 
+    // https://observablehq.com/@d3/clustered-bubbles
     function tick() {
       bubbles.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
     }
 
-    this.centerScale.domain(nodes.map(d => d.mode))
+    this.centerScale.domain(nodes.map((d) => d.mode));
 
     this.simulation.nodes(nodes).on("tick", tick).restart();
   }
