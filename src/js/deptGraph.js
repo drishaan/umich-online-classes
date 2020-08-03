@@ -180,8 +180,8 @@ var dataN = classes.map((d) => ({ ID: d }));
 class Search {
   //Set size of graph
   margin = { top: 20, right: 20, bottom: 20, left: 20 };
-  width = 600
-  height = 400
+  width = 600;
+  height = 400;
 
   y = d3.scaleLinear().domain([0, 1]).range([this.height, 0]);
   x = d3
@@ -245,8 +245,8 @@ class Search {
 
   chart(rawdata, _, el) {
     var search = "MATH";
-    this.width = d3.min([600, window.innerWidth * 0.8])
-    this.x.range([30, this.width])
+    this.width = d3.min([600, window.innerWidth * 0.8]);
+    this.x.range([30, this.width]);
 
     function onFilter() {
       var filterText = d3.select(".form__field").property("value");
@@ -296,7 +296,7 @@ class Search {
       return d.dept === search;
     });
     data = this.preprocess(data);
-    console.log(data)
+    console.log(data);
     //Create the svg object
     const form = el
       .selectAll("div.form__group.field")
@@ -304,7 +304,7 @@ class Search {
       .enter()
       .append("div")
       .classed("form__group", true)
-      .classed("field", true)
+      .classed("field", true);
     form
       .append("input")
       .attr("type", "text")
@@ -315,10 +315,11 @@ class Search {
       .classed("form__field", true)
       .on("keyup", onFilter);
 
-    form.append("label")
+    form
+      .append("label")
       .attr("for", "name")
       .classed("form__label", true)
-      .text("Search any department by abbreviation...")
+      .text("Search any department by abbreviation...");
 
     console.log(form);
     const svg = el
@@ -337,16 +338,14 @@ class Search {
       .attr("transform", `translate(0, ${this.height})`) //move x-axis to bottom of graph
       .attr("class", "axis")
       .call(customXAxis);
-    
-    function getcolor(mode){
-      if(mode === "Online"){
-        return "#d95f02"
-      }
-      else if(mode === "Hybrid"){
-        return "#7570b3"
-      }
-      else{
-        return "#1b9e77"
+
+    function getcolor(mode) {
+      if (mode === "Online") {
+        return "#1b9e77";
+      } else if (mode === "Hybrid") {
+        return "#d95f02";
+      } else {
+        return "#7570b3";
       }
     }
 
@@ -360,7 +359,9 @@ class Search {
       .attr("class", "mybar")
       .attr("width", this.x.bandwidth())
       .attr("height", (d) => this.height - this.y(d.value))
-      .attr("fill", function(d){ return getcolor(d.key)});
+      .attr("fill", function (d) {
+        return getcolor(d.key);
+      });
 
     const update = function (search) {
       // const data = rawdata;
@@ -382,7 +383,9 @@ class Search {
         .attr("class", "mybar")
         .attr("width", this.x.bandwidth())
         .attr("height", (d) => this.height - this.y(d.value))
-        .attr("fill", function(d){ return getcolor(d.key)});
+        .attr("fill", function (d) {
+          return getcolor(d.key);
+        });
     }.bind(this);
 
     onFilter();

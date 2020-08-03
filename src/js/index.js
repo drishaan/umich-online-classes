@@ -100,27 +100,28 @@ class TypeBreakdown {
       .attr("x", (d) => this.xScale(d.offset))
       .attr("fill", (_, i) => this.colorScale(i));
     const format = d3.format(".0%");
-    if(window.innerWidth > 550){
+    if (window.innerWidth > 550) {
       const labels = g
-      .selectAll("text")
-      .data(data)
-      .enter()
-      .append("text")
-      .attr("alignment-baseline", "middle")
-      .attr("x", (d) => this.xScale(d.offset) + 5)
-      .attr("y", 30 / 2.0 + 2)
-      .attr("font-size", "smaller")
-      .attr("fill", "white")
-      .text((d) => `${d.key} ${format(d.value)}`);
-    }
-    else{
+        .selectAll("text")
+        .data(data)
+        .enter()
+        .append("text")
+        .attr("alignment-baseline", "middle")
+        .attr("x", (d) => this.xScale(d.offset) + 5)
+        .attr("y", 30 / 2.0 + 2)
+        .attr("font-size", "smaller")
+        .attr("fill", "white")
+        .text((d) => `${d.key} ${format(d.value)}`);
+    } else {
       var legend2 = el
-      .selectAll("text.legend2")
-      .data([data])
-      .enter()
-      .append("p")
-      .html("<span id=inPersonLegend>In Person</span> <span id=onlineLegend>Online</span> <span id=hybridLegend>Hybrid</span>")
-      .classed("legend2", true)
+        .selectAll("text.legend2")
+        .data([data])
+        .enter()
+        .append("p")
+        .html(
+          "<span id=inPersonLegend>In Person</span> <span id=onlineLegend>Online</span> <span id=hybridLegend>Hybrid</span>"
+        )
+        .classed("legend2", true);
     }
   }
 
@@ -166,19 +167,22 @@ class ClassBreakdown {
   }
 
   chart(datum, _, el) {
+    function mouseover(data) {
+      var inp = (data.percentages.get("In Person") * 100).toFixed(2);
+      var onl = (data.percentages.get("Online") * 100).toFixed(2);
+      var hyb = (data.percentages.get("Hybrid") * 100).toFixed(2);
 
-    function mouseover(data){
-      var inp = (data.percentages.get("In Person") * 100).toFixed(2)
-      var onl = (data.percentages.get("Online") * 100).toFixed(2)
-      var hyb = (data.percentages.get("Hybrid") * 100).toFixed(2)
-
-      d3.select(".legend")
-        .html("<span id=inPersonLegend>In Person: " + inp + "%</span> <span id=onlineLegend>Online: " + onl + "%</span> <span id=hybridLegend>Hybrid: " + hyb +"%</span>")
+      d3.select(".legend").html(
+        `<span id=onlineLegend>Online: ${onl} %</span>
+        <span id=hybridLegend>Hybrid: ${hyb} %</span>
+        <span id=inPersonLegend>In Person: ${inp} %</span>`
+      );
     }
 
-    function mouseout(){
-      d3.select(".legend")
-        .html("<span id=inPersonLegend>In Person</span> <span id=onlineLegend>Online</span> <span id=hybridLegend>Hybrid</span>")
+    function mouseout() {
+      d3.select(".legend").html(
+        " <span id=onlineLegend>Online</span> <span id=hybridLegend>Hybrid</span><span id=inPersonLegend>In Person</span>"
+      );
     }
 
     this.width = d3.min([600, window.innerWidth * 0.8]);
@@ -202,7 +206,9 @@ class ClassBreakdown {
 
     let subgroups = Array.from(data[0].percentages.keys());
 
-    let color = d3.scaleOrdinal(d3.schemeDark2).domain(subgroups);
+    let color = d3
+      .scaleOrdinal(d3.schemeDark2)
+      .domain(["Online", "Hybrid", "In Person"]);
 
     let stacker = d3.stack().keys(subgroups);
 
@@ -214,8 +220,9 @@ class ClassBreakdown {
       .attr("transform", (d) => `translate(0,${this.y(d.subject)})`)
       .classed("bar", true)
       .each((d) => console.log(d))
-      .on("mouseover", function(d){
-        mouseover(d)})
+      .on("mouseover", function (d) {
+        mouseover(d);
+      })
       .on("mouseout", mouseout);
     bars
       .selectAll("rect")
@@ -233,7 +240,7 @@ class ClassBreakdown {
       .attr("width", (d) => this.x(d[0][1]) - this.x(d[0][0]))
       .attr("x", (d) => this.x(d[0][0]))
       .attr("height", 20)
-      .attr("fill", (d) => color(d.key))
+      .attr("fill", (d) => color(d.key));
     bars
       .filter((_, i) => i === 0)
       .selectAll("text")
@@ -246,16 +253,18 @@ class ClassBreakdown {
         );
         return stacker([obj]);
       })
+      .enter();
+    var legend = el
+      .selectAll("text.legend")
+      .data([data])
       .enter()
-      var legend = el
-        .selectAll("text.legend")
-        .data([data])
-        .enter()
-        .append("p")
-        .html("<span id=inPersonLegend>In Person</span> <span id=onlineLegend>Online</span> <span id=hybridLegend>Hybrid</span>")
-        .classed("legend", true)
+      .append("p")
+      .html(
+        "<span id=onlineLegend>Online</span> <span id=hybridLegend>Hybrid</span> <span id=inPersonLegend>In Person</span>"
+      )
+      .classed("legend", true);
   }
-  
+
   draw(selection) {
     const chart = this.chart;
     selection.each(function (d, i) {
@@ -440,7 +449,7 @@ class ClassPool {
       .text((d) => `${d.dept} ${d.number}`)
       .attr("x", 0);
     bubbles.filter((d) => d.radius > 20).raise();
-    this.centerScale.domain(nodes.map((d) => d.mode));
+    this.centerScale.domain(["In Person", "Online", "Hybrid"]);
     const categories = g
       .selectAll("text.category")
       .data(["Online", "In Person", "Hybrid"])
