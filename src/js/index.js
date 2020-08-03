@@ -100,7 +100,8 @@ class TypeBreakdown {
       .attr("x", (d) => this.xScale(d.offset))
       .attr("fill", (_, i) => this.colorScale(i));
     const format = d3.format(".0%");
-    const labels = g
+    if(window.innerWidth > 550){
+      const labels = g
       .selectAll("text")
       .data(data)
       .enter()
@@ -109,7 +110,18 @@ class TypeBreakdown {
       .attr("x", (d) => this.xScale(d.offset) + 5)
       .attr("y", 30 / 2.0 + 2)
       .attr("font-size", "smaller")
+      .attr("fill", "white")
       .text((d) => `${d.key} ${format(d.value)}`);
+    }
+    else{
+      var legend2 = el
+      .selectAll("text.legend2")
+      .data([data])
+      .enter()
+      .append("p")
+      .html("<span id=inPersonLegend>In Person</span> <span id=onlineLegend>Online</span> <span id=hybridLegend>Hybrid</span>")
+      .classed("legend2", true)
+    }
   }
 
   draw(selection) {
