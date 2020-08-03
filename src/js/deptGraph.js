@@ -245,6 +245,8 @@ class Search {
 
   chart(rawdata, _, el) {
     var search = "MATH";
+    this.width = d3.min([600, window.innerWidth * 0.8])
+    this.x.range([30, this.width])
 
     function onFilter() {
       var filterText = d3.select(".form__field").property("value");
