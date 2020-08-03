@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import { rollup, group } from "d3-array";
+import Search from "./deptGraph";
 
 function checkIframe() {
   try {
@@ -15,6 +16,7 @@ window.onload = function () {
     const type_breakdown = new TypeBreakdown();
     const class_pool = new ClassPool();
     const class_breakdown = new ClassBreakdown();
+    const search = new Search();
     d3.select(".vis.type_breakdown .figure__graphic")
       .datum(data)
       .call(type_breakdown.draw);
@@ -24,6 +26,9 @@ window.onload = function () {
     d3.select(".vis.subject_breakdown .figure__graphic")
       .datum(data)
       .call(class_breakdown.draw);
+    d3.select(".vis.dept_breakdown .figure__graphic")
+      .datum(data)
+      .call(search.draw);
   });
 };
 
