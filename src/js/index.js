@@ -154,6 +154,21 @@ class ClassBreakdown {
   }
 
   chart(datum, _, el) {
+
+    function mouseover(data){
+      var inp = (data.percentages.get("In Person") * 100).toFixed(2)
+      var onl = (data.percentages.get("Online") * 100).toFixed(2)
+      var hyb = (data.percentages.get("Hybrid") * 100).toFixed(2)
+
+      d3.select(".legend")
+        .html("<span id=inPersonLegend>In Person: " + inp + "%</span> <span id=onlineLegend>Online: " + onl + "%</span> <span id=hybridLegend>Hybrid: " + hyb +"%</span>")
+    }
+
+    function mouseout(){
+      d3.select(".legend")
+        .html("<span id=inPersonLegend>In Person</span> <span id=onlineLegend>Online</span> <span id=hybridLegend>Hybrid</span>")
+    }
+
     this.width = d3.min([600, window.innerWidth * 0.8]);
     this.x.range([0, this.width - this.margin.left - this.margin.right]);
     console.log(this.width);
@@ -185,7 +200,11 @@ class ClassBreakdown {
       .enter()
       .append("g")
       .attr("transform", (d) => `translate(0,${this.y(d.subject)})`)
-      .classed("bar", true);
+      .classed("bar", true)
+      .each((d) => console.log(d))
+      .on("mouseover", function(d){
+        mouseover(d)})
+      .on("mouseout", mouseout);
     bars
       .selectAll("rect")
       .data(function (d) {
@@ -202,7 +221,7 @@ class ClassBreakdown {
       .attr("width", (d) => this.x(d[0][1]) - this.x(d[0][0]))
       .attr("x", (d) => this.x(d[0][0]))
       .attr("height", 20)
-      .attr("fill", (d) => color(d.key));
+      .attr("fill", (d) => color(d.key))
     bars
       .filter((_, i) => i === 0)
       .selectAll("text")
@@ -216,13 +235,15 @@ class ClassBreakdown {
         return stacker([obj]);
       })
       .enter()
-      .append("text")
-      .text((d) => d.key)
-      .attr("x", (d) => this.x(d[0][0]) + 5)
-      .attr("dy", 12)
-      .attr("alignment-baseline", "middle")
-      .attr("font-size", "smaller");
+      var legend = el
+        .selectAll("text.legend")
+        .data([data])
+        .enter()
+        .append("p")
+        .html("<span id=inPersonLegend>In Person</span> <span id=onlineLegend>Online</span> <span id=hybridLegend>Hybrid</span>")
+        .classed("legend", true)
   }
+  
   draw(selection) {
     const chart = this.chart;
     selection.each(function (d, i) {

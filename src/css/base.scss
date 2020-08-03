@@ -179,3 +179,24 @@ $gray: #9b9b9b;
 .form__field{
   &:required,&:invalid { box-shadow:none; }
 }
+
+#inPersonLegend{
+  color: #1b9e77;
+}
+
+#onlineLegend{
+  color: #d95f02;
+  margin-left: 10%;
+  margin-right: 10%;
+}
+
+#hybridLegend{
+  color: #7570b3;
+}
+
+.legend{
+  width: 100%;
+  text-align:center;
+}
+
+// ["#1b9e77","#d95f02","#7570b3","#e7298a","#66a61e","#e6ab02","#a6761d","#666666"]
