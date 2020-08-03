@@ -337,19 +337,7 @@ class Search {
       .attr("transform", `translate(0, ${this.height})`) //move x-axis to bottom of graph
       .attr("class", "axis")
       .call(customXAxis);
-
-    svg
-      .selectAll(".mybar")
-      .data(data)
-      .enter()
-      .append("rect")
-      .attr("x", (d) => this.x(d.key) + this.margin.left)
-      .attr("y", (d) => this.y(d.value) + this.margin.top)
-      .attr("class", "mybar")
-      .attr("width", this.x.bandwidth())
-      .attr("height", (d) => this.height - this.y(d.value))
-      .attr("fill", "#374567");
-
+    
     function getcolor(mode){
       if(mode === "Online"){
         return "#d95f02"
@@ -361,6 +349,18 @@ class Search {
         return "#1b9e77"
       }
     }
+
+    svg
+      .selectAll(".mybar")
+      .data(data)
+      .enter()
+      .append("rect")
+      .attr("x", (d) => this.x(d.key) + this.margin.left)
+      .attr("y", (d) => this.y(d.value) + this.margin.top)
+      .attr("class", "mybar")
+      .attr("width", this.x.bandwidth())
+      .attr("height", (d) => this.height - this.y(d.value))
+      .attr("fill", function(d){ return getcolor(d.key)});
 
     const update = function (search) {
       // const data = rawdata;
