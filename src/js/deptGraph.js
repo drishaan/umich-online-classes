@@ -180,8 +180,9 @@ var dataN = classes.map((d) => ({ ID: d }));
 class Search {
   //Set size of graph
   margin = { top: 20, right: 20, bottom: 20, left: 20 };
-  width = 600;
-  height = 400;
+  width = 600
+  height = 400
+
   y = d3.scaleLinear().domain([0, 1]).range([this.height, 0]);
   x = d3
     .scaleBand()
@@ -237,7 +238,6 @@ class Search {
       }
     });
 
-    // sortedData.push(data)
     console.log(sortedData);
     console.log(data);
     return sortedData;
@@ -328,8 +328,8 @@ class Search {
       .data(data)
       .enter()
       .append("rect")
-      .attr("x", (d) => this.x(d.key))
-      .attr("y", (d) => this.y(d.value))
+      .attr("x", (d) => this.x(d.key) + this.margin.left)
+      .attr("y", (d) => this.y(d.value) + this.margin.top)
       .attr("class", "mybar")
       .attr("width", this.x.bandwidth())
       .attr("height", (d) => this.height - this.y(d.value))
@@ -350,8 +350,8 @@ class Search {
         .merge(u)
         .transition()
         .duration(800)
-        .attr("x", (d) => this.x(d.key))
-        .attr("y", (d) => this.y(d.value))
+        .attr("x", (d) => this.x(d.key) + this.margin.left)
+        .attr("y", (d) => this.y(d.value) + this.margin.top)
         .attr("class", "mybar")
         .attr("width", this.x.bandwidth())
         .attr("height", (d) => this.height - this.y(d.value))
