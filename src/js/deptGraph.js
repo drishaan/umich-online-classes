@@ -337,6 +337,18 @@ class Search {
       .attr("height", (d) => this.height - this.y(d.value))
       .attr("fill", "#374567");
 
+    function getcolor(mode){
+      if(mode === "Online"){
+        return "#d95f02"
+      }
+      else if(mode === "Hybrid"){
+        return "#7570b3"
+      }
+      else{
+        return "#1b9e77"
+      }
+    }
+
     const update = function (search) {
       // const data = rawdata;
       let data = rawdata.filter(function (d) {
@@ -357,7 +369,7 @@ class Search {
         .attr("class", "mybar")
         .attr("width", this.x.bandwidth())
         .attr("height", (d) => this.height - this.y(d.value))
-        .attr("fill", "#374567");
+        .attr("fill", function(d){ return getcolor(d.key)});
     }.bind(this);
 
     onFilter();
