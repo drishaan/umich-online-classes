@@ -124,9 +124,7 @@ class ClassBreakdown {
 
   margin = { top: 0, right: 0, bottom: 0, left: 100 };
   y = d3.scaleBand().range([0, this.height]).padding([0.2]);
-  x = d3
-    .scaleLinear()
-    .domain([0, 1])
+  x = d3.scaleLinear().domain([0, 1]);
 
   constructor() {
     // in here, "this" is the Map instance
@@ -151,9 +149,9 @@ class ClassBreakdown {
   }
 
   chart(datum, _, el) {
-    this.width = d3.min([600, window.innerWidth * 0.8])
+    this.width = d3.min([600, window.innerWidth * 0.8]);
     this.x.range([0, this.width - this.margin.left - this.margin.right]);
-    console.log(this.width)
+    console.log(this.width);
     const data = this.preprocess(datum);
     const svg_enter = el
       .selectAll("svg")
@@ -215,10 +213,10 @@ class ClassBreakdown {
       .enter()
       .append("text")
       .text((d) => d.key)
-      .attr("x", d => this.x(d[0][0]) + 5)
+      .attr("x", (d) => this.x(d[0][0]) + 5)
       .attr("dy", 12)
       .attr("alignment-baseline", "middle")
-      .attr("font-size", "smaller")
+      .attr("font-size", "smaller");
   }
   draw(selection) {
     const chart = this.chart;
@@ -317,9 +315,9 @@ class ClassPool {
   }
 
   chart(datum, _, el) {
-    this.width = window.innerWidth * 0.8
+    this.width = window.innerWidth * 0.8;
     this.centerScale.range([0, this.width]);
-    this.radiusScale.range([0, this.width * 0.05])
+    this.radiusScale.range([0, this.width * 0.03]);
 
     function hover() {
       const text = d3
@@ -346,9 +344,14 @@ class ClassPool {
         .append("tspan")
         .text((d) => `${d.dept} ${d.number}`)
         .attr("x", 0);
+      d3.select(this)
+        .select("circle")
+        .attr("stroke", "black")
+        .attr("stroke-width", 2);
       d3.select(this).raise();
     }
     function unhover() {
+      d3.select(this).select("circle").attr("stroke", "none");
       if (d3.select(this).datum().radius < 20)
         d3.select(this).selectAll("text.label").remove();
     }
