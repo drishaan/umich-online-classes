@@ -299,14 +299,27 @@ class Search {
     console.log(data)
     //Create the svg object
     const form = el
-      .selectAll("text.form__field")
+      .selectAll("div.form__group.field")
       .data([data])
       .enter()
-      .each((d) => console.log(d))
+      .append("div")
+      .classed("form__group", true)
+      .classed("field", true)
+    form
       .append("input")
       .attr("type", "text")
+      .attr("placeholder", "Department name")
+      .attr("name", "name")
+      .attr("id", "name")
+      .attr("autocomplete", "off")
       .classed("form__field", true)
       .on("keyup", onFilter);
+
+    form.append("label")
+      .attr("for", "name")
+      .classed("form__label", true)
+      .text("Search any department by abbreviation...")
+
     console.log(form);
     const svg = el
       .selectAll("svg")
