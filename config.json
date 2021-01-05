@@ -1,11 +1,11 @@
 {
     "archie": {
-        "gdoc": "12TCxueegms0qIzbqMsy1SdFzPdRbFey0venbk708tn8",
+        "gdoc": "REDACTED",
         "template": "./template/index.html",
         "output": "./template/copy.json",
         "apiConfig": "./auth.json"
     },
     "hostname": "magnify.michigandaily.us",
     "base_url": "online_classes",
-    "ga_id": "UA-168080597-1"
+    "ga_id": "REDACTED"
 }
